@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Fixture for gene -> testing-coverage extraction. Exercises:
+    * a multi-gene cell ("TEST1 & TEST2") that a query for either gene must find;
+    * a Table A ("Genes and Databases") giving NCBI Gene IDs via ext-link-type="gene";
+    * an indexed gene (ABSENT) with no testing table at all -> a reported coverage gap;
+    * a table that must NOT be mistaken for a testing table (no Method facet).
+-->
+<book-part-wrapper id="cov" content-type="chapter" dtd-version="2.0">
+  <book-part>
+    <book-part-meta>
+      <title-group><title>Test Coverage Disorder</title></title-group>
+      <kwd-group kwd-group-type="GeneSymbol">
+        <kwd>TEST1</kwd><kwd>TEST2</kwd><kwd>ABSENT</kwd>
+      </kwd-group>
+      <kwd-group kwd-group-type="DiseaseName"><kwd>Test Coverage Disorder</kwd></kwd-group>
+    </book-part-meta>
+    <body>
+      <sec id="cov.Diagnosis">
+        <title>Diagnosis</title>
+        <p>See <xref ref-type="table" rid="cov.T.testing">Table 1</xref>.</p>
+        <table-wrap id="cov.T.testing" orientation="portrait" position="anchor">
+          <label>Table 1. </label>
+          <caption><p>Molecular Genetic Testing Used in Test Coverage Disorder</p></caption>
+          <table frame="hsides" rules="groups">
+            <thead>
+              <tr>
+                <th id="c1" scope="col">Gene</th>
+                <th id="c2" scope="col">Method</th>
+                <th id="c3" scope="col">Proportion of Probands with a Pathogenic Variant Detectable by Method</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td headers="c1"><italic toggle="yes">TEST1</italic> &amp; <italic toggle="yes">TEST2</italic></td>
+                <td headers="c2">Sequence analysis</td>
+                <td headers="c3">50%</td>
+              </tr>
+              <tr>
+                <td headers="c1">TEST1</td>
+                <td headers="c2">Gene-targeted deletion/duplication analysis</td>
+                <td headers="c3">25%</td>
+              </tr>
+              <tr>
+                <td headers="c1">TEST2</td>
+                <td headers="c2">Gene-targeted deletion/duplication analysis</td>
+                <td headers="c3">None reported</td>
+              </tr>
+            </tbody>
+          </table>
+        </table-wrap>
+      </sec>
+      <sec id="cov.Molecular_Genetics">
+        <title>Molecular Genetics</title>
+        <table-wrap id="cov.molgen.TA" specific-use="from-external-xml">
+          <label>Table A. </label>
+          <caption><p>Test Coverage Disorder: Genes and Databases</p></caption>
+          <table>
+            <tbody>
+              <tr>
+                <th>Gene</th><th>Chromosome Locus</th><th>Protein</th>
+              </tr>
+              <tr>
+                <td><ext-link ext-link-type="gene" href="111"><italic toggle="yes">TEST1</italic></ext-link></td>
+                <td>1p11.1</td><td>Test protein 1</td>
+              </tr>
+              <tr>
+                <td><ext-link ext-link-type="gene" href="222"><italic toggle="yes">TEST2</italic></ext-link></td>
+                <td>2q22.2</td><td>Test protein 2</td>
+              </tr>
+            </tbody>
+          </table>
+        </table-wrap>
+      </sec>
+    </body>
+  </book-part>
+</book-part-wrapper>

@@ -253,6 +253,67 @@ def cmd_html(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_coverage(args: argparse.Namespace) -> int:
+    """Gene -> testing-coverage tables."""
+    from .coverage import coverage_matrix_html
+    from .render import html_document
+
+    source = resolve_source(args)
+    genes = [g for g in args.genes if g.strip()]
+    if not genes:
+        raise SystemExit("provide at least one gene symbol")
+
+    with open_source(source) as src:
+        corpus = Corpus(src)
+        coverages = corpus.gene_coverages(
+            genes,
+            min_confidence=args.min_confidence,
+            require_caption_match=args.require_caption,
+        )
+
+    ordered = [coverages[g.strip().upper()] for g in genes]
+
+    if args.format == "html":
+        parts = ['<h1>Testing coverage</h1>']
+        if len(ordered) > 1:
+            parts.append(coverage_matrix_html(ordered))
+        for coverage in ordered:
+            parts.append(coverage.to_html(include_source=args.source_tables))
+        _emit(html_document("\n".join(parts), title="GeneReviews testing coverage"), args.output)
+        return 0
+
+    if args.format == "csv":
+        import csv as _csv
+        import io as _io
+
+        rows = [
+            {"gene": coverage.gene, **record}
+            for coverage in ordered
+            for record in coverage.to_records()
+        ]
+        if rows:
+            buffer = _io.StringIO()
+            writer = _csv.DictWriter(buffer, fieldnames=list(rows[0].keys()))
+            writer.writeheader()
+            for row in rows:
+                writer.writerow(
+                    {
+                        k: ("; ".join(map(str, v)) if isinstance(v, (list, tuple)) else v)
+                        for k, v in row.items()
+                    }
+                )
+            _emit(buffer.getvalue(), args.output)
+        return 0
+
+    payload: Any = (
+        ordered[0].to_dict(include_source_html=args.html)
+        if len(ordered) == 1
+        else {c.gene: c.to_dict(include_source_html=args.html) for c in ordered}
+    )
+    _emit(_dumps(payload), args.output)
+    return 0
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Argument parsing
 # ──────────────────────────────────────────────────────────────────────────────
@@ -321,6 +382,24 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_testing.add_argument("--min-confidence", type=float, default=0.0)
     p_testing.set_defaults(func=cmd_testing)
+
+    p_coverage = sub.add_parser(
+        "coverage",
+        help="gene -> testing-coverage tables (methods and expected yield)",
+        parents=[common],
+    )
+    p_coverage.add_argument("genes", nargs="+", help="gene symbol(s), e.g. SCN1A SCN5A")
+    p_coverage.add_argument("-o", "--output", help="write output to this file")
+    p_coverage.add_argument("-f", "--format", choices=("json", "csv", "html"), default="json")
+    p_coverage.add_argument("--html", action="store_true", help="embed source table HTML (json)")
+    p_coverage.add_argument(
+        "--source-tables", action="store_true", help="append the original tables (html format)"
+    )
+    p_coverage.add_argument("--min-confidence", type=float, default=0.8)
+    p_coverage.add_argument(
+        "--require-caption", action="store_true", help="only tables whose caption names testing"
+    )
+    p_coverage.set_defaults(func=cmd_coverage)
 
     p_html = sub.add_parser(
         "html", help="render chapters' testing tables to one HTML page", parents=[common]

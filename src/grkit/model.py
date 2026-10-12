@@ -46,7 +46,16 @@ class Cell:
     """Column header ids from the ``headers`` attribute, giving semantic column mapping."""
 
     marks: tuple[str, ...] = ()
-    """Footnote labels this cell references."""
+    """Footnote labels this cell references, all of which are defined in the table."""
+
+    orphan_marks: tuple[str, ...] = ()
+    """Marker-shaped superscripts whose footnote is missing from the source table.
+
+    GeneReviews occasionally drops a footnote but leaves its marker in a cell (e.g. the
+    ``brugada`` testing table defines 1-5, 7, 8 while a cell cites 6). These are excluded
+    from :attr:`text` so parsed values stay clean, and recorded here so the gap is visible.
+    """
+
 
     raw_text: str = ""
     """Plain text with footnote markers retained (useful for display/debugging)."""

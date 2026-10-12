@@ -174,6 +174,60 @@ distinguished, with `low`/`high` bounds and a `midpoint` for comparison.
 Because the source `Table` is retained on every result, the published table can always be
 rendered exactly as-is alongside the normalized view.
 
+## 6. Gene → testing-coverage tables
+
+Project the whole corpus onto a single gene: what testing is recommended, and what is the
+expected yield?
+
+```python
+with Corpus("gene_NBK1116.tar.gz") as corpus:
+    cov = corpus.gene_coverage("SCN1A")
+
+cov.gene_ids                # ['6323']  -- from the entry's Table A gene link
+cov.summary_rows()          # one row per method, with the yield range across entries
+cov.sensitivity()           # {'sequencing': {...}, 'copy_number': {...}, 'preferred': 'sequence'}
+cov.entries_with_table      # [fhm, gefs]
+cov.entries_indexed_only    # entries that discuss the gene but publish no table
+cov.first_line()            # the first-listed method, i.e. the preferred strategy
+cov.coverage_matrix()       # {chapter_id: {method: yield}}
+cov.to_html()               # coverage table (summary + per-entry detail)
+```
+
+```
+SCN1A (NCBI Gene ID 6323)
+  Sequence analysis                          sequence             entries=2  yields=['100%', '73%-92%']      82.5–100%
+  Gene-targeted deletion/duplication analysis deletion_duplication entries=2  yields=['None reported', '8%-27%'] 0–17.5%
+```
+
+Four things make this more than a filter:
+
+- **Gene cells are not single symbols.** They can be `HBA1 & HBA2`, a fifteen-symbol
+  mitochondrial run, `Unknown`, or a whole sentence
+  (`~0.8-Mb heterozygous deletion at 1q21.1`). `cell_genes()` splits and validates them, so
+  querying `HBA2` finds the `HBA1 & HBA2` row. Source casing is used to reject prose, and
+  the `C11orf65` family is handled as a legitimate exception.
+- **Implicit attribution.** A single-gene entry such as `gefs` (SCN1A Seizure Disorders)
+  has a testing table with no usable Gene column; those rows are attributed to the gene and
+  flagged `implicit=True` rather than dropped (or wrongly spread over an overview's genes).
+- **Coverage gaps are reported.** SCN5A is indexed in three entries but only `brugada`
+  publishes a method/yield table — `dcm-ov` and `rws` come back from
+  `entries_indexed_only`. "Discusses the gene, publishes no coverage data" is part of the
+  answer.
+- **Qualitative yields stay out of the numbers.** `None reported` is an explicit zero and
+  joins the range; `1 family`, `Unknown` and `See footnote 7.` are surfaced separately so a
+  range is never read as the whole story.
+
+Query a panel in one pass with `corpus.gene_coverages(["SCN1A", "SCN5A", ...])` — scanning
+dominates the cost (~6 s for 996 chapters), so 60 genes cost about the same as one.
+
+```bash
+grkit coverage SCN1A SCN5A HBA2 KCNQ1                     # JSON
+grkit coverage SCN1A -f html --source-tables -o out.html  # coverage + original tables
+grkit coverage SCN1A SCN5A -f csv -o coverage.csv
+```
+
+![Gene testing-coverage tables](out/coverage-preview.png)
+
 ## CLI
 
 ```bash
@@ -185,6 +239,7 @@ grkit testing  -c abs --strategy                 # testing strategy vs yield (JS
 grkit testing  --strategy -f html -o out.html    # faithful tables + normalized view
 grkit testing  -f csv -o tables.csv              # flat records
 grkit html     -c abs -c a-thal --strategy -o page.html
+grkit coverage SCN1A SCN5A [-f json|csv|html] [--source-tables] [-o out]
 ```
 
 `--source` accepts a `.tar.gz`, an `.nxml` directory, or a single file; otherwise
@@ -200,7 +255,10 @@ Produced from the real corpus with the commands above:
 | [`out/testing-strategy-vs-yield.csv`](out/testing-strategy-vs-yield.csv) | 3,271 flat (gene, method, yield) observations across 864 tables |
 | [`out/testing-strategy-vs-yield.json`](out/testing-strategy-vs-yield.json) | Same, with per-gene `strategy_vs_yield` comparisons |
 | [`out/chapter-abs.json`](out/chapter-abs.json) | One chapter's full structured record, including table HTML |
-| [`out/rendered-preview.png`](out/rendered-preview.png) | Screenshot of the rendered HTML |
+| [`out/gene-testing-coverage.html`](out/gene-testing-coverage.html) | Gene → testing-coverage tables for SCN1A, SCN5A, HBA2, KCNQ1 |
+| [`out/gene-coverage.csv`](out/gene-coverage.csv) | The same coverage rows in flat form |
+| [`out/rendered-preview.png`](out/rendered-preview.png) | Screenshot of the rendered table HTML |
+| [`out/coverage-preview.png`](out/coverage-preview.png) | Screenshot of the rendered coverage tables |
 
 ## Validation against the real corpus
 
@@ -215,6 +273,10 @@ yield kinds:  percent 1836, fraction 206, unknown 283, none_reported 360,
               not_applicable 186, count 105, see_footnote 91, text 154, multi_percent 13
 ```
 
+Gene→coverage projection over a 60-gene panel: 60 coverage tables built in one 6.3 s scan,
+0 exceptions; tokenization rejects prose, chromosome arms, karyotype complements and assay
+abbreviations, leaving 1,267 distinct real gene symbols.
+
 Chapters without a testing table are correctly excluded: appendices and front matter, plus
 gene-attribution and differential-diagnosis tables that have a yield-looking column but no
 method facet. Tables such as `Genes and Databases` (`Gene | Chromosome Locus | Protein`) are
@@ -223,14 +285,14 @@ deliberately rejected — `Chromosome Locus` must not be mistaken for a cytogene
 ## Tests and lint
 
 ```bash
-python -m pytest tests/ -q     # 199 tests, hermetic (no network, no real corpus)
+python -m pytest tests/ -q     # 249 tests, hermetic (no network, no real corpus)
 python -m ruff check src tests
 ```
 
 Coverage includes span expansion and the row-misalignment regression, the stray single-row
 `<thead>` `rowspan` quirk, footnote-marker detachment rules, HTML rendering (tag ordering,
 escaping, anchor integrity), both testing-table layouts, yield/method parsing, tar streaming
-and spooling, and the updater with a mocked network.
+and spooling, gene-cell tokenization and coverage projection, and the updater with a mocked network.
 
 ## Package layout
 
@@ -245,8 +307,9 @@ src/grkit/
   inline.py    rich inline -> plain text + HTML, footnote-marker handling
   render.py    faithful HTML / Markdown, footnote links, CSS
   testing.py   testing-strategy-vs-yield extraction and normalization
+  coverage.py  gene -> testing-coverage tables (method/yield projection, gaps)
   cli.py       the grkit command
-tests/         199 hermetic tests + a synthetic fixture covering every real structure
+tests/         249 hermetic tests + synthetic fixtures covering every real structure
 ```
 
 ## Notes and limitations

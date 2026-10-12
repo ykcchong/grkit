@@ -57,11 +57,19 @@ def test_multiple_labels_are_all_recorded():
     assert set(marks) == {"4", "5"}
 
 
-def test_unknown_superscript_is_kept():
-    """A superscript that is not a defined footnote label must survive."""
-    text, marks = element_to_text_and_marks(el("<td>92%&#x000a0;<sup>9</sup></td>"), {"4"})
-    assert text == "92% 9"
+def test_orphan_marker_is_excluded_from_text_but_recorded():
+    """A marker whose footnote is missing still must not pollute the parsed value.
+
+    Real case: the ``brugada`` testing table defines labels 1-5, 7, 8 yet a cell cites 6,
+    leaving "~1% 6" in the flattened text. The value is kept clean and the gap recorded.
+    """
+    orphans: list[str] = []
+    text, marks = element_to_text_and_marks(
+        el("<td>92%&#x000a0;<sup>9</sup></td>"), {"4"}, orphans
+    )
+    assert text == "92%"
     assert marks == ()
+    assert orphans == ["9"]
 
 
 def test_unit_exponent_is_not_a_marker():
@@ -82,6 +90,13 @@ def test_marker_at_start_of_cell_is_detected():
     text, marks = element_to_text_and_marks(el("<td><sup>1</sup></td>"), {"1"})
     assert text == ""
     assert marks == ("1",)
+
+
+def test_orphan_marker_renders_unlinked_and_flagged():
+    opts = InlineOptions(footnote_labels=frozenset({"4"}), anchor_prefix="fn-tbl")
+    html = element_to_html(el("<td>~1%&#x000a0;<sup>6</sup></td>"), opts)
+    assert html == '~1% <sup class="fn-orphan">6</sup>'
+    assert "fn-ref" not in html
 
 
 def test_no_labels_means_no_marker_handling():

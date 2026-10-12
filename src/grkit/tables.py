@@ -121,7 +121,8 @@ def _make_cell(
     is_header: bool,
     opts: InlineOptions,
 ) -> Cell:
-    text, marks = element_to_text_and_marks(el, opts.footnote_labels)
+    orphans: list[str] = []
+    text, marks = element_to_text_and_marks(el, opts.footnote_labels, orphans)
     return Cell(
         text=text,
         html=element_to_html(el, opts),
@@ -135,6 +136,7 @@ def _make_cell(
         align=el.get("align", ""),
         header_ids=tuple((el.get("headers") or "").split()),
         marks=marks,
+        orphan_marks=tuple(orphans),
         raw_text=element_to_text(el),
     )
 

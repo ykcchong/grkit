@@ -30,6 +30,15 @@ Quick start::
 from __future__ import annotations
 
 from .corpus import Corpus
+from .coverage import (
+    CoverageEntry,
+    CoverageRow,
+    GeneTestingCoverage,
+    cell_genes,
+    coverage_matrix_html,
+    gene_testing_coverage,
+    gene_testing_coverages,
+)
 from .inline import (
     InlineOptions,
     element_to_html,
@@ -46,7 +55,7 @@ from .model import (
     Section,
     Table,
 )
-from .reader import Chapter, classify_url, parse_chapter, section_name
+from .reader import Chapter, classify_link, classify_url, parse_chapter, section_name
 from .render import (
     DEFAULT_TABLE_CSS,
     footnotes_to_html,
@@ -97,6 +106,14 @@ __all__ = [
     "__version__",
     # corpus & sources
     "Corpus",
+    # gene -> testing coverage
+    "GeneTestingCoverage",
+    "CoverageRow",
+    "CoverageEntry",
+    "gene_testing_coverage",
+    "gene_testing_coverages",
+    "coverage_matrix_html",
+    "cell_genes",
     "ChapterSource",
     "DirectorySource",
     "FileSource",
@@ -108,6 +125,7 @@ __all__ = [
     "parse_chapter",
     "section_name",
     "classify_url",
+    "classify_link",
     "Author",
     "CrossReference",
     "Footnote",

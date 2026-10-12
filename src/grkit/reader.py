@@ -40,13 +40,17 @@ _RESOURCE_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("gtr", re.compile(r"gtr/(?:tests/)?(\d+)", re.I)),
     ("genereviews", re.compile(r"genereviews/(?:NBK\d+/?)?([A-Za-z0-9\-_]+)", re.I)),
     ("pmid", re.compile(r"pubmed(?:\.ncbi\.nlm\.nih\.gov)?/(\d+)", re.I)),
-    ("hgnc", re.compile(r"hgnc[^/]*/(?:gene/)?([A-Za-z0-9\-_]+)", re.I)),
+    ("hgnc", re.compile(r"HGNC:(\d+)", re.I)),
+    ("ncbi_gene", re.compile(r"ncbi\.nlm\.nih\.gov/gene/(\d+)", re.I)),
+    # ".../genome/gdv/?context=gene&acc=5447" carries the gene id as a query parameter.
+    ("ncbi_gene", re.compile(r"gene.*?[?&]acc=(\d+)", re.I)),
+    # GTR test searches are keyed by gene id: gtr/tests/?term=5447[geneid]
+    ("gtr", re.compile(r"gtr/.*?[?&]term=(\d+)", re.I)),
     ("medgen", re.compile(r"medgen/(\d+)", re.I)),
     (
         "orphanet",
         re.compile(r"orpha\.net/(?:consor/cgi-bin/OC_Exp\.php\?lng=EN&Expert=)?(\d+)", re.I),
     ),
-    ("gene", re.compile(r"ncbi\.nlm\.nih\.gov/gene/(\d+)", re.I)),
     ("doi", re.compile(r"doi\.org/(10\.\S+)", re.I)),
 )
 
@@ -87,6 +91,20 @@ def classify_url(url: str) -> tuple[str, str]:
         if match:
             return db, match.group(1)
     return "uri", url
+
+
+def classify_link(href: str, link_type: str = "") -> tuple[str, str]:
+    """Classify a link into ``(db, value)``, preferring an explicit JATS ``ext-link-type``.
+
+    GeneReviews states the resource in markup (``<ext-link ext-link-type="gene"
+    xlink:href="5447">``), where the href is a *bare identifier* rather than a URL. URL
+    patterns alone cannot recognise that, so the attribute is consulted first.
+    """
+    kind = (link_type or "").strip().lower()
+    value = (href or "").strip()
+    if kind == "gene" and value.isdigit():
+        return "ncbi_gene", value
+    return classify_url(value)
 
 
 class Chapter:
@@ -264,6 +282,32 @@ class Chapter:
     def next_chapter(self) -> list[dict[str, str]]:
         return self._related_objects("next-part-link")
 
+    @property
+    def gene_id_map(self) -> dict[str, str]:
+        """Map gene symbol -> NCBI Gene ID from this chapter's "Genes and Databases" table.
+
+        The table's Gene cell is ``<ext-link ext-link-type="gene" xlink:href="5447">``
+        wrapping the symbol ``POR``:
+        the href is the stable identifier and the element text is the symbol, so the pair
+        gives a symbol->id mapping for whatever genes the entry publishes.
+        """
+        mapping: dict[str, str] = {}
+        for el in self._root.iter():
+            if localname(el.tag) != "ext-link":
+                continue
+            if (el.get("ext-link-type") or "").lower() != "gene":
+                continue
+            href = el.get(_XLINK_HREF) or el.get("href") or ""
+            symbol = element_to_text(el)
+            if href.strip().isdigit() and symbol:
+                mapping.setdefault(symbol.upper(), href.strip())
+        return mapping
+
+    @property
+    def gene_ids(self) -> list[str]:
+        """NCBI Gene IDs published for this chapter's genes, sorted."""
+        return sorted(set(self.gene_id_map.values()))
+
     # ── content ──────────────────────────────────────────────────────────────
     @property
     def sections(self) -> list[Section]:
@@ -394,7 +438,7 @@ class Chapter:
         seen: set[tuple[str, str]] = set()
         out: list[CrossReference] = []
         for link in self.links:
-            db, value = classify_url(link.href)
+            db, value = classify_link(link.href, link.link_type)
             if not db or (db, value) in seen:
                 continue
             seen.add((db, value))

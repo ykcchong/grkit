@@ -208,6 +208,14 @@ def _render_html(
                 if el.tail:
                     out.append(_escape(el.tail))
                 return
+            if labels:
+                # Orphan marker: the table has footnotes but not this label. Keep it
+                # visible (the rendering stays faithful to the published table) while
+                # flagging it, since there is no footnote to link to.
+                out.append(f'<sup class="fn-orphan">{_escape(plain)}</sup>')
+                if el.tail:
+                    out.append(_escape(el.tail))
+                return
 
     open_tag, close_tag, self_contained = _tags_for(el, opts)
     out.append(open_tag)
@@ -268,12 +276,25 @@ def _emit(
     known: frozenset[str],
     marks: list[str],
     allow_marks: bool,
+    orphans: list[str] | None = None,
 ) -> str:
-    """Append ``node``'s text to ``out``, dropping confirmed footnote markers.
+    """Append ``node``'s text to ``out``, dropping footnote markers.
 
     Returns the raw text emitted so far, so the caller can keep deciding whether a
-    following ``<sup>`` is detached. Confirmed markers are removed from the text *and*
-    recorded in ``marks``; unconfirmed superscripts are kept verbatim.
+    following ``<sup>`` is detached.
+
+    Three cases are distinguished for a detached, marker-shaped ``<sup>``:
+
+    * label is defined in the table -> removed from the text, recorded in ``marks``, and
+      linked in the HTML rendering;
+    * label is *not* defined (an orphan: GeneReviews sometimes drops a footnote while
+      leaving its marker behind, e.g. ``brugada`` defines 1-5, 7, 8 but a cell cites 6) ->
+      still removed from the text so parsed values stay clean, but recorded in ``orphans``
+      so the gap is visible rather than silently swallowed;
+    * not marker-shaped or not detached -> kept verbatim (a unit exponent such as
+      ``m<sup>2</sup>``, or a bare number that is the cell's own value).
+
+    ``raw_text`` on the cell always preserves the original, so nothing is lost.
     """
     if node.text:
         out.append(node.text)
@@ -285,10 +306,16 @@ def _emit(
             value = element_to_text(child)
             if value and _is_detached(preceding) and _MARKER_RE.match(value):
                 labels = split_markers(value)
-                if labels and all(lbl in known for lbl in labels):
-                    for lbl in labels:
+                if labels:
+                    confirmed = [lbl for lbl in labels if lbl in known]
+                    missing = [lbl for lbl in labels if lbl not in known]
+                    for lbl in confirmed:
                         if lbl not in marks:
                             marks.append(lbl)
+                    if orphans is not None:
+                        for lbl in missing:
+                            if lbl not in orphans:
+                                orphans.append(lbl)
                     if child.tail:
                         out.append(child.tail)
                         preceding += child.tail
@@ -299,11 +326,11 @@ def _emit(
         elif name in _BLOCK_TAGS:
             out.append(" ")
             preceding += " "
-            preceding = _emit(child, out, preceding, known, marks, allow_marks)
+            preceding = _emit(child, out, preceding, known, marks, allow_marks, orphans)
             out.append(" ")
             preceding += " "
         else:
-            preceding = _emit(child, out, preceding, known, marks, allow_marks)
+            preceding = _emit(child, out, preceding, known, marks, allow_marks, orphans)
         if child.tail:
             out.append(child.tail)
             preceding += child.tail
@@ -311,21 +338,23 @@ def _emit(
 
 
 def element_to_text_and_marks(
-    el: ET.Element | None, labels: Iterable[str] = ()
+    el: ET.Element | None,
+    labels: Iterable[str] = (),
+    orphans: list[str] | None = None,
 ) -> tuple[str, tuple[str, ...]]:
     """Return ``(text, marks)`` for ``el``.
 
-    ``text`` is whitespace-collapsed and has confirmed footnote markers removed, so a
-    yield reads ``"92%"`` rather than ``"92% 4"``. A cell whose entire content is a bare
-    number (``"1"``) is preserved unless that number is genuinely a detached marker, so
-    score columns are never emptied.
+    ``text`` is whitespace-collapsed with footnote markers removed, so a yield reads
+    ``"92%"`` rather than ``"92% 4"``. Tags whose labels are not defined in the table are
+    removed too, and collected into ``orphans`` when a list is supplied. A cell whose whole
+    content is a bare number (``"1"``) is preserved, so score columns are never emptied.
     """
     if el is None:
         return "", ()
     known = frozenset(labels)
     out: list[str] = []
     marks: list[str] = []
-    _emit(el, out, "", known, marks, bool(known))
+    _emit(el, out, "", known, marks, bool(known), orphans)
     return _WS_RE.sub(" ", "".join(out)).strip(), tuple(marks)
 
 

@@ -163,6 +163,23 @@ class Corpus:
         for chapter in self.iter_chapters():
             yield from extract_testing_yield(chapter)
 
+    # ── gene -> testing coverage ─────────────────────────────────────────────
+    def gene_coverage(self, gene: str, **kwargs: object):
+        """Testing-coverage table for one gene.
+
+        Returns a :class:`~grkit.coverage.GeneTestingCoverage` with the method/yield rows
+        drawn from every entry, plus the entries that index the gene but publish no table.
+        """
+        from .coverage import gene_testing_coverage
+
+        return gene_testing_coverage(gene, self.iter_chapters(), **kwargs)
+
+    def gene_coverages(self, genes, **kwargs: object):
+        """Testing-coverage tables for several genes, scanning the corpus only once."""
+        from .coverage import gene_testing_coverages
+
+        return gene_testing_coverages(genes, self.iter_chapters(), **kwargs)
+
     def close(self) -> None:
         if self._owns_source:
             self.source.close()

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Single-gene entry whose testing table has NO Gene column: the chapter is about exactly
+  one gene, so its rows must be attributed to that gene (flagged as implicit) rather than
+  being dropped or attributed to every gene in an overview.
+-->
+<book-part-wrapper id="solo" content-type="chapter" dtd-version="2.0">
+  <book-part>
+    <book-part-meta>
+      <title-group><title>Solo Gene Disorder</title></title-group>
+      <kwd-group kwd-group-type="GeneSymbol"><kwd>SOLO</kwd></kwd-group>
+    </book-part-meta>
+    <body>
+      <sec id="solo.Diagnosis">
+        <title>Diagnosis</title>
+        <table-wrap id="solo.T.testing">
+          <label>Table 1. </label>
+          <caption><p>Molecular Genetic Testing Used in Solo Gene Disorder</p></caption>
+          <table frame="hsides" rules="groups">
+            <thead>
+              <tr>
+                <th id="s1" scope="col">Method</th>
+                <th id="s2" scope="col">Proportion of Probands with a Pathogenic Variant Detectable by Method</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td headers="s1">Sequence analysis</td><td headers="s2">88%</td></tr>
+              <tr>
+                <td headers="s1">Gene-targeted deletion/duplication analysis</td>
+                <td headers="s2">12%</td>
+              </tr>
+            </tbody>
+          </table>
+        </table-wrap>
+      </sec>
+      <sec id="solo.Molecular_Genetics">
+        <title>Molecular Genetics</title>
+        <table-wrap id="solo.molgen.TA">
+          <label>Table A. </label>
+          <caption><p>Solo Gene Disorder: Genes and Databases</p></caption>
+          <table>
+            <tbody>
+              <tr><th>Gene</th><th>Chromosome Locus</th><th>Protein</th></tr>
+              <tr>
+                <td><ext-link ext-link-type="gene" href="999"><italic toggle="yes">SOLO</italic></ext-link></td>
+                <td>9q99</td><td>Solo protein</td>
+              </tr>
+            </tbody>
+          </table>
+        </table-wrap>
+      </sec>
+    </body>
+  </book-part>
+</book-part-wrapper>

@@ -239,6 +239,7 @@ DEFAULT_TABLE_CSS = """\
 .gr-table thead th { background: #eef2f6; }
 .gr-table tbody th { background: #f7f9fb; font-weight: 600; }
 .gr-table .fn-mark a { text-decoration: none; }
+.gr-table .fn-orphan { color: #b45309; }  /* marker with no matching footnote */
 .gr-footnotes { margin: 0.4rem 0 0; padding-left: 1.2rem; font-size: 0.85rem; }
 .gr-footnotes .fn-label { font-weight: 600; }
 """
