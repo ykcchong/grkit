@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "grkit"
+version = "0.1.0"
+description = "Robust reader for the GeneReviews (NCBI Bookshelf NBK1116) NXML corpus: self-updating archive access, lossless structured fields, span-faithful tables with HTML rendering, and testing-strategy-vs-yield extraction."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+keywords = ["genereviews", "nxml", "ncbi", "bioinformatics", "genetics", "jats"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Text Processing :: Markup :: XML",
+]
+# Deliberately dependency-free: the whole library is stdlib-only.
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "ruff>=0.1"]
+
+[project.scripts]
+grkit = "grkit.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B"]

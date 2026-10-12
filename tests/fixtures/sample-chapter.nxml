@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Synthetic fixture reproducing every table structure that matters in the real corpus:
+
+  * Table 1  - "long" layout (Gene | Method | proportion) with a gene that spans two
+               methods via rowspan="2", a stray rowspan="2" on a single-row <thead>
+               (a real GeneReviews quirk that must NOT swallow the first data row),
+               an unlabelled legend footnote, and footnote markers in cells.
+  * Table 2  - "wide" layout: methods are columns under a two-level header, including
+               nested sub-methods (Common/Other deletions) and <break/> in a header.
+  * Table 3  - a Method column plus TWO yield columns (Proband / At-risk family members).
+  * Table 4  - a gene/database table with its header row inside <tbody>; must NOT be
+               mistaken for a testing table ("Chromosome Locus" is not a test method).
+  * Table 5  - a unit exponent (m<sup>2</sup>) that must survive as a superscript rather
+               than being stripped as a footnote marker.
+-->
+<book-part-wrapper id="tst" content-type="chapter" dtd-version="2.0">
+  <book-meta>
+    <book-title-group><book-title>GeneReviews</book-title></book-title-group>
+  </book-meta>
+  <book-part>
+    <book-part-meta>
+      <book-part-id book-part-id-type="pmcid">tst</book-part-id>
+      <title-group>
+        <title>Test Syndrome</title>
+        <alt-title alt-title-type="alt-title">Synonyms: TS, Test Disorder</alt-title>
+      </title-group>
+      <contrib-group>
+        <contrib contrib-type="author">
+          <name name-style="western"><surname>Doe</surname><given-names>Jane</given-names></name>
+          <email>jane@example.org</email>
+        </contrib>
+      </contrib-group>
+      <pub-history>
+        <date date-type="created"><day>1</day><month>2</month><year>2001</year></date>
+        <date date-type="updated"><day>3</day><month>4</month><year>2020</year></date>
+      </pub-history>
+      <kwd-group kwd-group-type="GeneSymbol"><kwd>TEST1</kwd><kwd>TEST2</kwd></kwd-group>
+      <kwd-group kwd-group-type="DiseaseName"><kwd>Test Syndrome</kwd></kwd-group>
+      <kwd-group kwd-group-type="Synonym"><kwd>TS</kwd><kwd>Test Disorder</kwd></kwd-group>
+      <kwd-group kwd-group-type="Include"><kwd>Test-related phenotype</kwd></kwd-group>
+      <kwd-group kwd-group-type="ProteinName"><kwd>Test protein 1</kwd></kwd-group>
+      <related-object link-type="previous-part-link" source-id="gene" document-id="prev-chap" document-type="chapter">Previous Chapter</related-object>
+      <related-object link-type="next-part-link" source-id="gene" document-id="next-chap" document-type="chapter">Next Chapter</related-object>
+      <abstract id="tst.Summary">
+        <title>Summary</title>
+        <sec><title>Clinical characteristics</title><p>Test syndrome is a model disorder.</p></sec>
+      </abstract>
+    </book-part-meta>
+    <body>
+      <sec id="tst.Diagnosis">
+        <title>Diagnosis</title>
+        <p>See <xref ref-type="table" rid="tst.T.testing">Table 1</xref> and <ext-link href="https://www.omim.org/entry/123456" ext-link-type="uri">OMIM 123456</ext-link>.</p>
+        <table-wrap id="tst.T.testing" orientation="portrait" position="anchor">
+          <label>Table 1. </label>
+          <caption><p>Molecular Genetic Testing Used in Test Syndrome</p></caption>
+          <table frame="hsides" rules="groups">
+            <thead>
+              <tr>
+                <th id="h1" rowspan="2" valign="middle" align="left" scope="col" colspan="1">Gene&#x000a0;<sup>1</sup></th>
+                <th id="h2" rowspan="2" valign="middle" align="left" scope="col" colspan="1">Method</th>
+                <th id="h3" rowspan="2" valign="middle" align="left" scope="col" colspan="1">Proportion of Probands with a Pathogenic Variant&#x000a0;<sup>2</sup> Detectable by Method</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td headers="h1" rowspan="2" valign="middle" align="left" scope="row" colspan="1"><italic toggle="yes">TEST1</italic></td>
+                <td headers="h2" align="left">Sequence analysis&#x000a0;<sup>3</sup></td>
+                <td headers="h3" align="left">92%&#x000a0;<sup>4</sup></td>
+              </tr>
+              <tr>
+                <td headers="h2" align="left" scope="row">Gene-targeted deletion/duplication analysis&#x000a0;<sup>5</sup></td>
+                <td headers="h3" align="left">2.5%&#x000a0;<sup>4,&#x000a0;5</sup></td>
+              </tr>
+              <tr>
+                <td headers="h1" align="left" scope="row">Unknown</td>
+                <td headers="h2" align="left">NA</td>
+                <td headers="h3" align="left">5.5%</td>
+              </tr>
+            </tbody>
+          </table>
+          <table-wrap-foot>
+            <fn><p>NA = not applicable</p></fn>
+            <fn id="tst.TF.1.1"><label>1. </label><p>See Table A. Genes and Databases.</p></fn>
+            <fn id="tst.TF.1.2"><label>2. </label><p>Proband counts vary by cohort.</p></fn>
+            <fn id="tst.TF.1.3"><label>3. </label><p>Sequence analysis detects SNVs.</p></fn>
+            <fn id="tst.TF.1.4"><label>4. </label><p>Based on 100 probands.</p></fn>
+            <fn id="tst.TF.1.5"><label>5. </label><p>MLPA and quantitative PCR.</p></fn>
+          </table-wrap-foot>
+        </table-wrap>
+      </sec>
+
+      <sec id="tst.Molecular_Genetics">
+        <title>Molecular Genetics</title>
+        <table-wrap id="tst.T.wide">
+          <label>Table 2. </label>
+          <caption><p>Summary of Molecular Genetic Testing Used in Test Syndrome</p></caption>
+          <table frame="hsides" rules="groups">
+            <thead>
+              <tr>
+                <th id="w1" rowspan="3" scope="rowgroup">Gene</th>
+                <th id="w2" rowspan="3" scope="col">Proportion of Test Syndrome<break/>Attributed to Pathogenic<break/>Variants in Gene</th>
+                <th id="w3" colspan="3" scope="colgroup">Proportion of Pathogenic Variants&#x000a0;<sup>1</sup> Identified by Method</th>
+              </tr>
+              <tr>
+                <th id="w4" rowspan="2" scope="rowgroup">Sequence analysis&#x000a0;<sup>2</sup></th>
+                <th id="w5" colspan="2" scope="colgroup">Gene-targeted deletion/duplication analysis&#x000a0;<sup>3</sup></th>
+              </tr>
+              <tr>
+                <th id="w6" scope="colgroup">Common deletions</th>
+                <th id="w7" scope="col">Other deletions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th id="wr1" scope="row"><italic toggle="yes">TEST1</italic></th>
+                <td headers="w2" align="left">&#x0003e;98%</td>
+                <td headers="w3 w4" align="left">~15%</td>
+                <td headers="w3 w5 w6" align="left">~85%</td>
+                <td headers="w3 w5 w7" align="left">&#x0003c;5%</td>
+              </tr>
+              <tr>
+                <th id="wr2" scope="row">TEST2</th>
+                <td headers="w2" align="left">&#x0003c;1%</td>
+                <td headers="w3 w4" align="left"/>
+                <td headers="w3 w5 w6" align="left"/>
+                <td headers="w3 w5 w7" align="left">&#x0003c;1%</td>
+              </tr>
+            </tbody>
+          </table>
+          <table-wrap-foot>
+            <fn id="tst.TF.2.1"><label>1. </label><p>Method group note.</p></fn>
+            <fn id="tst.TF.2.2"><label>2. </label><p>Sequencing note.</p></fn>
+            <fn id="tst.TF.2.3"><label>3. </label><p>Deletion/duplication note.</p></fn>
+          </table-wrap-foot>
+        </table-wrap>
+      </sec>
+
+      <sec id="tst.Testing_Strategy">
+        <title>Testing Strategy</title>
+        <table-wrap id="tst.T.twoyield">
+          <label>Table 3. </label>
+          <caption><p>Molecular Genetic Testing Used to Detect the Test Deletion</p></caption>
+          <table frame="hsides" rules="groups">
+            <thead>
+              <tr>
+                <th id="t1" rowspan="2" scope="col">Deletion</th>
+                <th id="t2" rowspan="2" scope="col">Method</th>
+                <th id="t3" colspan="2" scope="colgroup">Sensitivity</th>
+              </tr>
+              <tr>
+                <th id="t4" scope="col">Proband</th>
+                <th id="t5" scope="col">At-risk family members</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td headers="t1" rowspan="2">~0.8-Mb deletion at 1q21.1</td>
+                <td headers="t2">CMA</td>
+                <td headers="t3 t4">100%</td>
+                <td headers="t3 t5">100%</td>
+              </tr>
+              <tr>
+                <td headers="t2">Targeted deletion analysis</td>
+                <td headers="t3 t4">Not applicable</td>
+                <td headers="t3 t5">100%</td>
+              </tr>
+            </tbody>
+          </table>
+        </table-wrap>
+      </sec>
+
+      <sec id="tst.Genes_and_Databases">
+        <title>Genes and Databases</title>
+        <table-wrap id="tst.T.db">
+          <label>Table 4. </label>
+          <caption><p>Test Syndrome: Genes and Databases</p></caption>
+          <table frame="hsides" rules="groups">
+            <tbody>
+              <tr>
+                <th scope="col">Gene</th>
+                <th scope="col">Chromosome Locus</th>
+                <th scope="col">Protein</th>
+              </tr>
+              <tr><td>TEST1</td><td>1q21.1</td><td>Test protein 1</td></tr>
+            </tbody>
+          </table>
+        </table-wrap>
+      </sec>
+
+      <sec id="tst.Chapter_Notes">
+        <title>Chapter Notes</title>
+        <p>Revision history.</p>
+        <table-wrap id="tst.T.units">
+          <label>Table 5. </label>
+          <caption><p>Dosing</p></caption>
+          <table frame="hsides" rules="groups">
+            <thead><tr><th scope="col">Drug</th><th scope="col">Dose<sup>1</sup></th></tr></thead>
+            <tbody><tr><td>Test drug</td><td>5 mg/m<sup>2</sup></td></tr></tbody>
+          </table>
+          <table-wrap-foot>
+            <fn id="tst.TF.5.1"><label>1. </label><p>Dose is per body surface area.</p></fn>
+          </table-wrap-foot>
+        </table-wrap>
+      </sec>
+    </body>
+    <back>
+      <sec id="tst.References">
+        <title>References</title>
+        <ref-list id="tst.Literature_Cited.reflist0">
+          <ref id="tst.REF.doe.2001.1">
+            <element-citation publication-type="journal">
+              <person-group>
+                <name name-style="western"><surname>Doe</surname><given-names>J</given-names></name>
+                <name name-style="western"><surname>Roe</surname><given-names>R</given-names></name>
+              </person-group>
+              <article-title>A test article.</article-title>
+              <source>J Test</source>
+              <year>2001</year>
+              <volume>10</volume>
+              <fpage>1</fpage>
+              <lpage>5</lpage>
+              <pub-id pub-id-type="pmid">12345678</pub-id>
+            </element-citation>
+          </ref>
+        </ref-list>
+      </sec>
+    </back>
+  </book-part>
+</book-part-wrapper>
